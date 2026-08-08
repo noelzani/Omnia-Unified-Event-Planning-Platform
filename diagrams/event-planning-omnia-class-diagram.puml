@@ -1,0 +1,526 @@
+@startuml
+
+title Event Planning Omnia - Class Diagram
+
+left to right direction
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+skinparam shadowing false
+skinparam linetype ortho
+
+' ============================================================
+' Domain model
+' ============================================================
+
+package "User Management" {
+
+  class Role {
+    +roleId: Long
+    +roleName: String
+  }
+
+  class User {
+    +userId: UUID
+    +name: String
+    +surname: String
+    +phone: String
+    +roleId: Long
+    +profileImage: String
+    +status: String
+    +createdAt: DateTime
+    +updatedAt: DateTime
+  }
+
+  class Customer {
+  }
+
+  class ProviderUser {
+  }
+
+  class Administrator {
+  }
+
+  class ProviderProfile {
+    +providerId: Long
+    +userId: UUID
+    +businessName: String
+    +businessDescription: String
+    +businessAddress: String
+    +city: String
+    +registrationNumber: String
+    +averageRating: Decimal
+    +status: String
+    +createdAt: DateTime
+  }
+
+  User <|-- Customer
+  User <|-- ProviderUser
+  User <|-- Administrator
+  Role "1" -- "0..*" User : assigned to
+  ProviderUser "1" -- "1" ProviderProfile : owns
+}
+
+package "Service Catalog" {
+
+  abstract class EventService {
+    +id: Long
+    +providerId: Long
+    +name: String
+    +description: String
+    +about: String
+    +city: String
+    +status: String
+    +rating: Decimal
+    +createdAt: DateTime
+  }
+
+  class Venue {
+    +venueId: Long
+    +venueType: String
+    +address: String
+    +capacity: Integer
+    +pricePerHour: Decimal
+    +pricePerDay: Decimal
+    +indoorOutdoor: String
+    +parkingAvailable: Boolean
+    +locationType: String
+  }
+
+  class Restaurant {
+    +restaurantId: Long
+    +address: String
+    +capacity: Integer
+    +cuisineType: String
+    +minimumGuests: Integer
+    +maximumGuests: Integer
+    +hasFixedMenu: Boolean
+    +parkingAvailability: Boolean
+    +indoorOutdoor: String
+    +diningStyle: String
+    +priceRange: String
+  }
+
+  class CateringService {
+    +cateringId: Long
+    +menuType: String
+    +serviceType: String
+    +pricePerPerson: Decimal
+    +minimumGuests: Integer
+    +maximumGuests: Integer
+  }
+
+  class DecorationService {
+    +decorationId: Long
+    +themeStyle: String
+    +startingPrice: Decimal
+    +operatingCities: List<String>
+  }
+
+  class ServiceImage {
+    +imageId: Long
+    +entityType: String
+    +entityId: Long
+    +imageUrl: String
+    +isPrimary: Boolean
+    +uploadedAt: DateTime
+  }
+
+  class Availability {
+    +availabilityId: Long
+    +entityType: String
+    +entityId: Long
+    +availableDate: Date
+    +startTime: Time
+    +endTime: Time
+    +isAvailable: Boolean
+  }
+
+  class EventType {
+    +eventTypeId: Integer
+    +name: String
+  }
+
+  class RestaurantMenu {
+    +menuId: Long
+    +restaurantId: Long
+    +menuName: String
+    +description: String
+    +pricePerPerson: Decimal
+    +menuType: String
+    +isActive: Boolean
+  }
+
+  class RestaurantMenuItem {
+    +menuItemId: Long
+    +menuId: Long
+    +itemName: String
+    +itemCategory: String
+    +description: String
+  }
+
+  EventService <|-- Venue
+  EventService <|-- Restaurant
+  EventService <|-- CateringService
+  EventService <|-- DecorationService
+
+  ProviderProfile "1" -- "0..*" EventService : provides
+  EventService "1" o-- "0..*" ServiceImage : images
+  EventService "1" o-- "0..*" Availability : availability
+  Venue "0..*" -- "0..*" EventType : supports
+  Restaurant "0..*" -- "0..*" EventType : supports
+  Restaurant "1" *-- "0..*" RestaurantMenu : menus
+  RestaurantMenu "1" *-- "0..*" RestaurantMenuItem : items
+}
+
+package "Booking and Payment" {
+
+  class Event {
+    +eventId: Long
+    +eventCategory: String
+    +city: String
+    +description: String
+    +startTime: DateTime
+    +endTime: DateTime
+    +numberOfPeople: Integer
+  }
+
+  class Booking {
+    +bookingId: Long
+    +customerId: UUID
+    +providerId: Long
+    +eventId: Long
+    +bookingStatus: String
+    +bookingType: String
+    +totalPrice: Decimal
+    +notes: String
+    +createdAt: DateTime
+    +updatedAt: DateTime
+  }
+
+  class BookingItem {
+    +bookingItemId: Long
+    +bookingId: Long
+    +entityType: String
+    +entityId: Long
+    +price: Decimal
+    +quantity: Integer
+    +notes: String
+  }
+
+  class Payment {
+    +paymentId: Long
+    +bookingId: Long
+    +paymentMethod: String
+    +amount: Decimal
+    +paymentStatus: String
+    +transactionReference: String
+    +paymentDate: DateTime
+  }
+
+  Customer "1" -- "0..*" Booking : creates
+  ProviderProfile "1" -- "0..*" Booking : receives
+  Event "1" -- "1" Booking : describes
+  Booking "1" *-- "1..*" BookingItem : contains
+  Booking "1" o-- "0..*" Payment : payments
+  BookingItem "0..*" --> "1" EventService : references
+}
+
+package "Customer Engagement" {
+
+  class Favorite {
+    +favoriteId: Long
+    +userId: UUID
+    +entityType: String
+    +entityId: Long
+    +createdAt: DateTime
+  }
+
+  class Board {
+    +boardId: Long
+    +userId: UUID
+    +name: String
+    +createdAt: DateTime
+  }
+
+  class BoardItem {
+    +boardItemId: Long
+    +boardId: Long
+    +entityType: String
+    +entityId: Long
+    +createdAt: DateTime
+  }
+
+  class Review {
+    +reviewId: Long
+    +customerId: UUID
+    +entityType: String
+    +entityId: Long
+    +rating: Integer
+    +comment: String
+    +createdAt: DateTime
+  }
+
+  class Notification {
+    +notificationId: Long
+    +userId: UUID
+    +title: String
+    +message: String
+    +type: String
+    +isRead: Boolean
+    +createdAt: DateTime
+  }
+
+  Customer "1" -- "0..*" Favorite : saves
+  Customer "1" -- "0..*" Board : creates
+  Board "1" *-- "0..*" BoardItem : contains
+  Customer "1" -- "0..*" Review : writes
+  User "1" -- "0..*" Notification : receives
+  Favorite "0..*" --> "1" EventService : references
+  BoardItem "0..*" --> "1" EventService : references
+  Review "0..*" --> "1" EventService : reviews
+}
+
+' ============================================================
+' Application services and controller classes based on code
+' ============================================================
+
+package "Application Services" {
+
+  class SupabaseClient {
+    +auth
+    +from(tableName: String)
+    +invokeFunction(name: String, body: Object)
+    +getStorageBucket(bucket: String)
+  }
+
+  class AuthService {
+    +signUp(email: String, password: String)
+    +signIn(email: String, password: String)
+    +signInWithGoogle()
+    +signOut()
+    +getUserRole(userId: String): Long
+    +ensureAppUser(user: AuthUser): AppUser
+  }
+
+  class UserProfileService {
+    +getUserProfile(userId: String): UserProfileRow
+    +upsertUserProfile(input: UpsertUserProfileInput): UserProfileRow
+  }
+
+  class CatalogService {
+    +getCategoryItems(category: CategoryType): List<CatalogItem>
+    +getCategoryItemById(category: CategoryType, id: String): CatalogItem
+  }
+
+  class VenueService {
+    +getVenues(): List<CatalogItem>
+    +getVenueById(id: String): CatalogItem
+    -getVenueImages(venueIds: List<Number>): Map
+    -getVenueEventTypes(venueIds: List<Number>): Map
+  }
+
+  class RestaurantService {
+    +getRestaurants(): List<CatalogItem>
+    +getRestaurantById(id: String): CatalogItem
+    -getRestaurantImages(restaurantIds: List<Number>): Map
+    -getRestaurantEventTypes(restaurantIds: List<Number>): Map
+  }
+
+  class CateringServiceApi {
+    +getCateringItems(): List<CatalogItem>
+    +getCateringById(id: String): CatalogItem
+    -attachCateringImages(rows: List<CateringRow>): List<CateringRow>
+  }
+
+  class DecorServiceApi {
+    +getDecorItems(): List<CatalogItem>
+    +getDecorById(id: String): CatalogItem
+    -attachDecorImages(rows: List<DecorRow>): List<DecorRow>
+  }
+
+  class ItemMapper {
+    +mapVenueRowToItem(row: VenueRow): CatalogItem
+    +mapRestaurantRowToItem(row: RestaurantRow): CatalogItem
+    +mapCateringRowToItem(row: CateringRow): CatalogItem
+    +mapDecorRowToItem(row: DecorRow): CatalogItem
+    +normalizeImageList(images: List<String>, fallbackImage: String): List<String>
+    +formatCapacityLabel(value: Any): String
+  }
+
+  class FavoriteService {
+    +getUserFavorites(userId: String): List<FavoriteRow>
+    +addFavorite(userId: String, type: String, id: Number): FavoriteRow
+    +removeFavorite(userId: String, type: String, id: Number)
+    +fetchFavoriteItems(favorites: List<FavoriteRow>): List<CatalogItem>
+  }
+
+  class BoardService {
+    +listFavoriteBoards(userId: String): List<FavoriteBoard>
+    +createFavoriteBoard(input: CreateFavoriteBoardInput): FavoriteBoard
+    +addFavoriteToBoard(boardId: Number, favorite: FavoriteRow)
+    +removeFavoriteFromBoard(boardId: Number, favorite: FavoriteRow)
+    +removeFavoriteFromAllBoards(userId: String, favorite: FavoriteRow)
+    +deleteFavoriteBoard(boardId: Number, userId: String)
+  }
+}
+
+package "Application Controllers" {
+
+  class AuthContext {
+    +loadSession()
+    +loadAppUser()
+    +signInWithGoogle()
+    +signOut()
+    +useAuth()
+  }
+
+  class FavoritesContext {
+    +loadFavorites()
+    +loadBoards()
+    +isFavorite(type: String, id: Number): Boolean
+    +toggleFavorite(type: String, id: Number)
+    +createBoard(name: String, items: List<FavoriteRow>): FavoriteBoard
+    +assignFavoriteToBoard(boardId: Number, favorite: FavoriteRow)
+    +removeFavoriteFromBoard(boardId: Number, favorite: FavoriteRow)
+    +deleteBoard(boardId: Number)
+    +openFavoriteBoardPicker(favorite: FavoriteRow)
+  }
+
+  class FiltersContext {
+    +updateFilters(filters: EventFilters)
+    +resetFilters()
+  }
+
+  class BookingController {
+    +fetchCalendarData()
+    +handleBooking()
+    +formatDateLocal(date: Date): String
+    +getDatesBetween(start: String, end: String): List<Date>
+    +hasUnavailableDateInRange(from: Date, to: Date): Boolean
+    +getVenueDayCount(from: Date, to: Date): Number
+  }
+
+  class MyBookingsController {
+    +loadBookings()
+    +fetchEditConstraints(booking: Booking)
+    +startEdit(booking: Booking)
+    +handleEditSave(booking: Booking)
+    +handleCancelBooking()
+    +handlePaymentSuccess(booking: Booking, paypalOrderId: String)
+    +getPaymentDeadline(booking: Booking): Date
+  }
+
+  class ProviderPropertyController {
+    +loadProperties()
+    +loadProperty()
+    +handleSave()
+    +handleDelete()
+    +uploadNewImages(files: List<File>, entityId: Number): List<String>
+  }
+
+  class ProviderBookingController {
+    +loadBookings()
+    +updateStatus(id: Number, status: String)
+  }
+
+  class AdminManagementController {
+    +loadData()
+    +deleteUser(user: UserRow)
+    +deleteService(service: ServiceRow)
+    +createProviderAccount(form: ProviderForm)
+  }
+
+  class AnalyticsController {
+    +load()
+    +getLast12Months()
+    +countByMonth(records: List<Object>): List<Object>
+  }
+
+  class PayPalButton {
+    +createOrder()
+    +onApprove(orderId: String)
+    +onError(error: Error)
+  }
+}
+
+package "External Systems" {
+  class SupabaseAuth <<external>> {
+    +signUp()
+    +signInWithPassword()
+    +signInWithOAuth()
+    +resetPasswordForEmail()
+    +updateUser()
+    +signOut()
+  }
+
+  class PayPalProcessor <<external>> {
+    +createOrder()
+    +captureOrder(orderId: String)
+  }
+}
+
+' ============================================================
+' Service dependencies
+' ============================================================
+
+AuthService ..> SupabaseClient
+UserProfileService ..> SupabaseClient
+CatalogService ..> VenueService
+CatalogService ..> RestaurantService
+CatalogService ..> CateringServiceApi
+CatalogService ..> DecorServiceApi
+VenueService ..> SupabaseClient
+RestaurantService ..> SupabaseClient
+CateringServiceApi ..> SupabaseClient
+DecorServiceApi ..> SupabaseClient
+VenueService ..> ItemMapper
+RestaurantService ..> ItemMapper
+CateringServiceApi ..> ItemMapper
+DecorServiceApi ..> ItemMapper
+FavoriteService ..> SupabaseClient
+FavoriteService ..> CatalogService
+BoardService ..> SupabaseClient
+
+AuthContext ..> AuthService
+AuthContext ..> UserProfileService
+FavoritesContext ..> FavoriteService
+FavoritesContext ..> BoardService
+FiltersContext ..> CatalogService
+BookingController ..> SupabaseClient
+BookingController ..> Booking
+BookingController ..> Event
+BookingController ..> BookingItem
+MyBookingsController ..> SupabaseClient
+MyBookingsController ..> Booking
+MyBookingsController ..> Payment
+ProviderPropertyController ..> SupabaseClient
+ProviderPropertyController ..> EventService
+ProviderBookingController ..> SupabaseClient
+ProviderBookingController ..> Booking
+AdminManagementController ..> SupabaseClient
+AdminManagementController ..> User
+AdminManagementController ..> ProviderProfile
+AnalyticsController ..> SupabaseClient
+PayPalButton ..> PayPalProcessor
+PayPalButton ..> Payment
+
+SupabaseClient ..> SupabaseAuth
+
+note right of EventService
+  The database stores service-related relationships
+  with polymorphic columns:
+
+  entity_type = venue | restaurant | catering | decoration
+  entity_id   = target service id
+
+  The UML model represents this more cleanly
+  with the abstract EventService superclass.
+end note
+
+note bottom of ProviderPropertyController
+  Combines provider add/edit/delete flows from:
+  ProviderProperties, ProviderEditProperty,
+  AddVenue, AddRestaurant, AddCatering, AddDecor.
+end note
+
+@enduml

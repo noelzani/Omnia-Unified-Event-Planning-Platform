@@ -1,0 +1,22 @@
+{
+  "name": "event-planning-website",
+  "private": true,
+  "workspaces": [
+    "front-end"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace front-end",
+    "build": "npm run build --workspace front-end",
+    "dev:front-end": "npm run dev --workspace front-end",
+    "build:front-end": "npm run build --workspace front-end"
+  },
+  "dependencies": {
+    "@paypal/react-paypal-js": "^9.2.0",
+    "date-fns": "^4.1.0",
+    "react-day-picker": "^9.14.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3"
+  }
+}
