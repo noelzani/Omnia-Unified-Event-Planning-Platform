@@ -6,29 +6,6 @@
 
 ---
 
-## Table of Contents
-
-1. [About the Project](#about-the-project)
-2. [Features](#features)
-3. [Tech Stack](#tech-stack)
-4. [System Architecture](#system-architecture)
-5. [Database Schema](#database-schema)
-6. [Project Structure](#project-structure)
-7. [Getting Started](#getting-started)
-   - [Prerequisites](#prerequisites)
-   - [Installation](#installation)
-   - [Environment Variables](#environment-variables)
-   - [Running the App](#running-the-app)
-8. [User Roles & Access Control](#user-roles--access-control)
-9. [Application Routes](#application-routes)
-10. [Supabase Edge Functions](#supabase-edge-functions)
-11. [Booking & Payment Flow](#booking--payment-flow)
-12. [Diagrams](#diagrams)
-13. [Known Limitations & Future Work](#known-limitations--future-work)
-14. [Attributions](#attributions)
-15. [License](#license)
-
----
 
 ## About the Project
 
@@ -197,73 +174,6 @@ npm run build
 
 
 
-### Customer routes (requires `role_id = 4`)
-
-| Path | Page |
-|---|---|
-| `/dashboard` | Logged-in home / discovery feed |
-| `/venues` | Browse venues |
-| `/restaurants` | Browse restaurants |
-| `/catering` | Browse catering services |
-| `/decor` | Browse decoration services |
-| `/:category/:id` | Listing detail page |
-| `/book/:entityType/:id` | Booking form |
-| `/my-bookings` | Booking history and payment |
-| `/favorites` | Saved boards and items |
-| `/profile` | User profile settings |
-
-### Provider routes (requires `role_id = 5`)
-
-| Path | Page |
-|---|---|
-| `/provider/dashboard` | Provider overview |
-| `/provider/properties` | Manage listings |
-| `/provider/add-property` | Add a new listing |
-| `/provider/edit-property/:entityType/:id` | Edit a listing |
-| `/provider/bookings` | Manage incoming bookings |
-| `/provider/profile` | Provider profile settings |
-
-### Admin routes (requires `role_id = 6`)
-
-| Path | Page |
-|---|---|
-| `/admin` | Analytics dashboard |
-| `/admin/manage` | User and provider management |
-| `/admin/add-provider` | Create a new provider account |
-| `/admin/profile` | Admin profile settings |
-
----
-
-## Supabase Edge Functions
-
-Edge Functions run on the Deno runtime and are deployed to Supabase. They handle operations that require server-side credentials.
-
-### `paypal-capture`
-
-Captures a PayPal order after the customer approves it in the PayPal popup.
-
-- **Trigger:** Called by `PayPalButton.tsx` after `onApprove` fires
-- **Input:** `{ orderId: string }`
-- **Process:** Exchanges `PAYPAL_CLIENT_ID` / `PAYPAL_SECRET` for a Bearer token, then calls `POST /v2/checkout/orders/{orderId}/capture` on the PayPal sandbox API
-- **Output:** Full PayPal capture response object
-- **Note:** Does not write to the database; the frontend inserts the resulting record into the `payments` table directly
-
-### `create-provider`
-
-Creates a new provider account from the admin panel.
-
-- **Trigger:** Called by `AdminAddProvider.tsx`
-- **Input:** `{ email, password, name, surname, phone }`
-- **Process:** Uses the Supabase service-role key to bypass RLS; creates an auth user (pre-confirmed), inserts a `users` row with `role_id = 5`, and inserts a `providers` row with status `"Pending Approval"`
-- **Output:** `{ provider_id }`
-- **Rollback:** If any step fails after the auth user is created, the auth user is deleted to avoid orphaned records
-
-### `create-booking` *(stub)*
-
-This function exists in the codebase but currently only returns a placeholder response. Actual booking creation is handled client-side in `BookingPage.tsx`.
-
----
-
 ## Booking & Payment Flow
 
 ```
@@ -298,18 +208,7 @@ This function exists in the codebase but currently only returns a placeholder re
 
 ---
 
-## Diagrams
 
-The `diagrams/` directory contains the following UML artefacts produced during the design phase of the thesis:
-
-| File | Description |
-|---|---|
-| `event-planning-omnia-class-diagram.png` | Class diagram (rendered image) |
-| `event-planning-omnia-class-diagram.drawio` | Class diagram (editable draw.io source) |
-| `event-planning-omnia-class-diagram.puml` | Class diagram (PlantUML source) |
-| `event-planning-omnia-use-case.drawio` | Use case diagram (editable draw.io source) |
-
----
 
 ## Known Limitations & Future Work
 
